@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Manager Pro</title>
+
+    <!-- FONT AWESOME ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #f4f7ff;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .navbar b {
+            color: #2563eb;
+            font-size: 18px;
+        }
+
+        .navbar a {
+            color: #2563eb;
+            text-decoration: none;
+            margin-left: 10px;
+        }
+
+        .container {
+            width: 85%;
+            margin: 25px auto;
+        }
+
+        /* STATS */
+        .stats {
+            display: flex;
+            gap: 15px;
+        }
+
+        .card {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-top: 4px solid #2563eb;
+            font-weight: bold;
+        }
+
+        /* INPUT BOX */
+        .add-box {
+            background: white;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 12px;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            flex: 1;
+            outline: none;
+        }
+
+        /* BUTTON BASE */
+        .btn {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            margin-right: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-done { background: #2563eb; color: white; }
+        .btn-edit { background: #f59e0b; color: white; }
+        .btn-delete { background: #ef4444; color: white; }
+
+        .btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background: #eaf1ff;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* COMPLETED */
+        .completed {
+            text-decoration: line-through;
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .done-badge {
+            font-size: 12px;
+            color: #16a34a;
+            margin-left: 8px;
+        }
+
+        /* OVERDUE */
+        .overdue {
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            margin-left: 8px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <b>Task Manager</b>
+    <div>
+        {{ request.user.username }}
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- DASHBOARD -->
+    <div class="stats">
+        <div class="card">Total<br>{{ total }}</div>
+        <div class="card">Completed<br>{{ completed }}</div>
+        <div class="card">Pending<br>{{ pending }}</div>
+    </div>
+
+    <!-- ADD TASK -->
+    <form method="POST" class="add-box">
+        {% csrf_token %}
+        <input name="title" placeholder="Task">
+        <input type="date" name="due_date">
+        <input name="category" placeholder="Category">
+        <button class="btn btn-done">
+            <i class="fa-solid fa-plus"></i>
+        </button>
+    </form>
+
+    <!-- TABLE -->
+    <table>
+
+        <tr>
+            <th>Task</th>
+            <th>Category</th>
+            <th>Due Date</th>
+            <th>Actions</th>
+        </tr>
+
+        {% for task in tasks %}
+        <tr>
+
+            <!-- TASK -->
+            <td class="{% if task.completed %}completed{% endif %}">
+                {{ task.title }}
+
+                {% if task.completed %}
+                    <span class="done-badge">✔ Done</span>
+                {% endif %}
+            </td>
+
+            <td>{{ task.category }}</td>
+
+            <!-- OVERDUE -->
+            <td>
+                {{ task.due_date }}
+
+                {% if task.due_date and task.due_date < today and not task.completed %}
+                    <span class="overdue">Overdue</span>
+                {% endif %}
+            </td>
+
+            <td>
+
+                <!-- DONE / UNDO -->
+                <form action="{% url 'complete_task' task.id %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button class="btn btn-done" title="Done / Undo">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                </form>
+
+                <!-- EDIT -->
+                <a href="{% url 'edit-task' task.id %}" class="btn btn-edit" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+
+                <!-- DELETE -->
+                <form action="{% url 'delete_task' task.id %}" method="POST" style="display:inline;">
+                    {% csrf_token %}
+                    <button class="btn btn-delete" title="Delete">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
+
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+</div>
+
+</body>
+</html>
