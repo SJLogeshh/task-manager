@@ -27,6 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# ✅ FIX CSRF FOR AZURE
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.azurewebsites.net"
+]
+
+# ✅ FIX HTTPS PROXY (IMPORTANT FOR AZURE)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
