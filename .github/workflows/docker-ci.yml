@@ -1,12 +1,9 @@
 name: CI/CD Pipeline - Django App
  
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Choose environment (develop/staging/prod)'
-        required: true
-        default: 'develop'
+  push:
+    branches:
+      - main
  
 jobs:
  
